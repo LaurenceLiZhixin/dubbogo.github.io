@@ -1,7 +1,7 @@
 ---
-title: Dubbo的注册中心
-keywords: 基本概念
-description: Dubbo的注册中心
+title: 可视化
+keywords: 可视化
+description: 可视化
 ---
 
 # 注册中心

@@ -77,158 +77,318 @@ export default {
     'zh-cn': {
         sidemenu: [
             {
-                title: 'Dubbo-go 3.0',
+                title: '概念',
                 children: [
                     {
-                        title: '简介',
-                        children: [
-                            {
-                                title: '新特性介绍',
-                                link: '/zh-cn/docs/user/preface/3.0_feature.html'
-                            },
-                            {
-                                title: '架构',
-                                link: '/zh-cn/docs/user/preface/architecture.html'
-                            }
-                        ]
+                        title: 'dubbo-go 是什么',
+                        link: '/zh-cn/docs/user/concept/what_is_dubbogo.html',
                     },
                     {
-                        title: '快速开始',
+                        title: 'RPC 调用',
                         children: [
-                            {
-                                title: 'Dubbo-go 3.0 快速开始',
-                                link: '/zh-cn/docs/user/quickstart/3.0/quickstart_triple.html',
-                            },
-                            {
-                                title: 'Dubbo 协议快速开始',
-                                link: '/zh-cn/docs/user/quickstart/3.0/quickstart_dubbo.html',
-                            }
-                        ]
-                    },
-                    {
-                        title: '基本概念',
-                        children: [
-                            {
-                                title: '服务层级',
-                                link: '/zh-cn/docs/user/concept/app_and_interface.html',
-                            },
                             {
                                 title: '网络协议',
-                                link: '/zh-cn/docs/user/concept/protocol.html',
+                                link: '/zh-cn/docs/user/concept/rpc/protocol.html',
                             },
                             {
-                                title: '注册中心',
-                                link: '/zh-cn/docs/user/concept/registry.html',
+                                title: '多语言',
+                                link: '/zh-cn/docs/user/concept/rpc/multi_language.html',
                             },
-                            {
-                                title: '框架配置',
-                                link: '/zh-cn/docs/user/concept/configuration.html',
-                            }
                         ]
                     },
                     {
-                        title: '高级使用',
+                        title: '服务治理',
                         children: [
                             {
-                                title: 'Samples 仓库介绍',
-                                link: '/zh-cn/docs/user/samples/samples_repo.html',
+                                title: '服务注册发现',
+                                link: '/zh-cn/docs/user/concept/service_management/registry.html',
                             },
                             {
-                                title: 'Go-Java 互通',
-                                link: '/zh-cn/docs/user/samples/go_java_interactive.html'
+                                title: 'AOP 与可扩展机制',
+                                link: '/zh-cn/docs/user/concept/service_management/aop_and_extension.html',
                             },
                             {
-                                title: '配置中心和配置监听',
-                                link: '/zh-cn/docs/user/samples/config-center-dynamic.html'
+                                title: '可视化',
+                                link: '/zh-cn/docs/user/concept/service_management/visualization.html',
                             },
-                            {
-                                title: 'Filter',
-                                link: '/zh-cn/docs/user/samples/custom-filter.html'
-                            },
-                            {
-                                title: '注册中心配置',
-                                link: '/zh-cn/docs/user/samples/registry.html'
-                            },
-                            {
-                                title: 'Triple 异常回传',
-                                link: '/zh-cn/docs/user/samples/exception_response.html'
-                            },
-                            {
-                                title: '日志',
-                                link: '/zh-cn/docs/user/samples/custom-logger.html'
-                            },
-                            {
-                                title: 'Metrics 数据上报',
-                                link: '/zh-cn/docs/user/samples/metrics.html'
-                            },
-                            {
-                                title: '泛化调用',
-                                link: '/zh-cn/docs/user/samples/generic.html'
-                            },
-                            {
-                                title: '柔性负载均衡',
-                                link: '/zh-cn/docs/user/samples/adaptive-service.html'
-                            },
-                            {
-                                title: '使用 Pixiu 暴露 Dubbo-go 服务',
-                                link: '/zh-cn/docs/user/samples/pixiu-nacos-triple.html'
-                            },
-                            {
-                                title: '使用 grpc_cli 调试 Dubbo-go 服务',
-                                link: '/zh-cn/docs/user/samples/grpc_cli.html'
-                            },
-                            {
-                                title: '应用级服务发现',
-                                link: '/zh-cn/docs/user/samples/service-discovery.html'
-                            },
-                            {
-                                title: '路由规则',
-                                link: '/zh-cn/docs/user/samples/mesh_router.html'
-                            }
                         ]
-                    },
-                    {
-                        title: '开发者指南',
-                        children: [
-                            {
-                                title: '框架设计',
-                                link: '/zh-cn/docs/developer/design.html'
-                            }
-                        ]
-                    },
-                ]
-            },
-            {
-                title: 'Dubbo-go 1.5',
-                children: [
-                    {
-                        title: '快速开始',
-                        link: '/zh-cn/docs/user/quickstart/1.5/quick-start.html'
                     },
                     {
                         title: '配置',
                         children: [
                             {
-                                title: '服务提供者',
-                                link: '/zh-cn/docs/user/configuration/provider.html'
+                                title: '基本配置概念',
+                                link: '/zh-cn/docs/user/concept/config/basic_concept.html',
                             },
                             {
-                                title: '消费者',
-                                link: '/zh-cn/docs/user/configuration/client.html'
+                                title: '配置中心',
+                                link: '/zh-cn/docs/user/concept/config/config_center.html',
+                            },
+                            {
+                                title: '配置API',
+                                link: '/zh-cn/docs/user/concept/config/config_api.html',
+                            },
+                        ]
+                    },
+                    {
+                        title: '更多',
+                        children: [
+                            {
+                                title: '3.0 新功能',
+                                link: '/zh-cn/docs/user/concept/more/3.0_feature.html'
+                            },
+                            {
+                                title: '应用与接口的层级关系',
+                                link: '/zh-cn/docs/user/concept/more/app_and_interface.html'
+                            },
+                            {
+                                title: '框架设计',
+                                link: '/zh-cn/docs/user/concept/more/architecture.html'
                             }
-                        ],
-                    }
+                        ]
+                    },
                 ]
             },
             {
-                title: 'Dubbo-go 生态项目',
+                title: '快速开始',
+                children: [
+                    {
+                        title: '安装 Dubbo-go 开发环境',
+                        link: '/zh-cn/docs/user/quickstart/install.html'
+                    },
+                    {
+                        title: '完成一次 RPC 调用',
+                        link: '/zh-cn/docs/user/quickstart/quickstart_triple.html'
+                    },
+                ]
+            },
+            {
+                title: '任务',
+                children: [
+                    {
+                        title: '服务调用',
+                        children: [
+                            {
+                                title: '配置调用的超时',
+                                link: '/zh-cn/docs/user/tasks/rpc/timeout.html'
+                            },
+                            {
+                                title: '配置调用的超时',
+                                link: '/zh-cn/docs/user/tasks/rpc/rpc_metrics.html'
+                            },
+                            {
+                                title: '为服务端设置限流',
+                                link: '/zh-cn/docs/user/tasks/rpc/tps_limiter.html'
+                            },
+                            {
+                                title: '与 Dubbo 2.x 跨语言互通',
+                                link: '/zh-cn/docs/user/tasks/rpc/call_java.html'
+                            },
+                            {
+                                title: '与 gRPC 服务互通',
+                                link: '/zh-cn/docs/user/tasks/rpc/call_grpc.html'
+                            },
+                            {
+                                title: '使用 ctx 传递上下文信息',
+                                link: '/zh-cn/docs/user/tasks/rpc/context.html'
+                            },
+                            {
+                                title: '泛化调用',
+                                link: '/zh-cn/docs/user/tasks/rpc/generic.html'
+                            },
+                            {
+                                title: '异常回传',
+                                link: '/zh-cn/docs/user/tasks/rpc/error.html'
+                            }
+                        ],
+                    },
+                    {
+                        title: '注册中心',
+                        children: [
+                            {
+                                title: '使用 Nacos 作为注册中心',
+                                link: '/zh-cn/docs/user/tasks/registry/nacos.html'
+                            },
+                            {
+                                title: '配置注册中心的超时、检查',
+                                link: '/zh-cn/docs/user/tasks/registry/registry_config.html'
+                            },
+                            {
+                                title: '多注册中心',
+                                link:'/zh-cn/docs/user/tasks/registry/multi_registry.html'
+                            },
+                        ],
+                    },
+                    {
+                        title: '配置',
+                        children: [
+                            {
+                                title: '从远程加载配置启动应用',
+                                link: '/zh-cn/docs/user/tasks/config/remote_config.html'
+                            },
+                            {
+                                title: '使用配置 API 启动应用',
+                                link:'/zh-cn/docs/user/tasks/config/config_api.html'
+                            },
+                        ],
+                    },
+                    {
+                        title: '服务治理',
+                        children: [
+                            {
+                                title: '自定义服务调用中间件',
+                                link: '/zh-cn/docs/user/tasks/service_management/aop.html'
+                            },
+                            {
+                                title: '服务柔性',
+                                link: '/zh-cn/docs/user/tasks/service_management/adaptive_lb.html'
+                            },
+                            {
+                                title: '优雅上下线',
+                                link:'/zh-cn/docs/user/tasks/service_management/graceful_shutdown.html'
+                            },
+                        ],
+                    },
+                    {
+                        title: '可视化',
+                        children: [
+                            {
+                                title: '使用 opentelementry 协议暴露 dubbo-go 应用数据 ',
+                                link: '/zh-cn/docs/user/tasks/visualization/opentelementry.html'
+                            },
+                            {
+                                title: '自定义日志',
+                                link: '/zh-cn/docs/user/tasks/visualization/logger.html'
+                            },
+                            {
+                                title: '基于 prometheus 的指标数据上报',
+                                link:'/zh-cn/docs/user/tasks/visualization/metrics.html'
+                            },
+                            {
+                                title: '基于 jaeger 的链路追踪',
+                                link:'/zh-cn/docs/user/tasks/visualization/tracing.html'
+                            },
+                        ],
+                    },
+                    {
+                        title: '无代理服务网格',
+                        children: [
+                            {
+                                title: '在 istio 集群中部署 dubbo-go 应用',
+                                link: '/zh-cn/docs/user/tasks/mesh/build.html'
+                            },
+                            {
+                                title: '使用 istio 进行 dubbo-go 流量管理',
+                                link: '/zh-cn/docs/user/tasks/mesh/traffic_management.html'
+                            },
+                            {
+                                title: '使用 pixiu 网关接入 ingress 流量',
+                                link:'/zh-cn/docs/user/tasks/mesh/ingress.html'
+                            },
+                            {
+                                title: '基于 argo 工作流的金丝雀发布',
+                                link:'/zh-cn/docs/user/tasks/mesh/gray_deploy.html'
+                            },
+                        ],
+                    },
+                    {
+                        title: '调试',
+                        children: [
+                            {
+                                title: '使用 grpc_cli 调试 triple 应用',
+                                link:'/zh-cn/docs/user/tasks/debug/grpc_cli.html'
+                            },
+                            {
+                                title: '使用dubbogo-cli 调试 dubbo 应用',
+                                link:'/zh-cn/docs/user/tasks/debug/dubbogo_cli.html'
+                            },
+                        ],
+                    },
+                ]
+            },
+            {
+                title: '示例',
                 children: [
                     {
                         title: 'Dubbo-go 生态项目',
                         link: '/zh-cn/docs/user/ecology/ecology.html'
+                    },
+                    {
+                        title: 'Samples 仓库介绍',
+                        link: '/zh-cn/docs/user/samples/samples_repo.html',
+                    },
+                    {
+                        title: 'Go-Java 互通',
+                        link: '/zh-cn/docs/user/samples/go_java_interactive.html'
+                    },
+                    {
+                        title: '配置中心和配置监听',
+                        link: '/zh-cn/docs/user/samples/config-center-dynamic.html'
+                    },
+                    {
+                        title: 'Filter',
+                        link: '/zh-cn/docs/user/samples/custom-filter.html'
+                    },
+                    {
+                        title: '注册中心配置',
+                        link: '/zh-cn/docs/user/samples/registry.html'
+                    },
+                    {
+                        title: 'Triple 异常回传',
+                        link: '/zh-cn/docs/user/samples/exception_response.html'
+                    },
+                    {
+                        title: '日志',
+                        link: '/zh-cn/docs/user/samples/custom-logger.html'
+                    },
+                    {
+                        title: 'Metrics 数据上报',
+                        link: '/zh-cn/docs/user/samples/metrics.html'
+                    },
+                    {
+                        title: '泛化调用',
+                        link: '/zh-cn/docs/user/samples/generic.html'
+                    },
+                    {
+                        title: '柔性负载均衡',
+                        link: '/zh-cn/docs/user/samples/adaptive-service.html'
+                    },
+                    {
+                        title: '使用 Pixiu 暴露 Dubbo-go 服务',
+                        link: '/zh-cn/docs/user/samples/pixiu-nacos-triple.html'
+                    },
+                    {
+                        title: '使用 grpc_cli 调试 Dubbo-go 服务',
+                        link: '/zh-cn/docs/user/samples/grpc_cli.html'
+                    },
+                    {
+                        title: '应用级服务发现',
+                        link: '/zh-cn/docs/user/samples/service-discovery.html'
+                    },
+                    {
+                        title: '路由规则',
+                        link: '/zh-cn/docs/user/samples/mesh_router.html'
                     }
                 ]
-            }
+            },
+            {
+                title: '参考',
+                children: [
+                    {
+                        title: '配置项参考',
+                        link: '/zh-cn/docs/user/refer/config.html'
+                    },
+                    {
+                        title: 'dubbogo-cli 工具',
+                        link: '/zh-cn/docs/user/refer/use_dubbogo_cli.html'
+                    },
+                    {
+                        title: 'Dubbo-go 生态项目介绍',
+                        link: '/zh-cn/docs/user/ecology/ecology.html'
+                    }
+                ]
+            },
+
         ],
         barText: '文档',
     }

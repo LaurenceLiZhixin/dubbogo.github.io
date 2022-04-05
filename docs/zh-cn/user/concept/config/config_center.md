@@ -1,7 +1,7 @@
 ---
-title: Dubbogo的配置
-keywords: 基本概念
-description: Dubbogo的配置
+title: 配置中心
+keywords: 配置中心
+description: 配置中心
 ---
 
 # Dubbogo 配置项
@@ -12,15 +12,15 @@ description: Dubbogo的配置
 
 - 根配置
 
-![](../../pic/3.0/config-root-config.png)
+![](../../../pic/3.0/config-root-config.png)
 
 - ProviderConfig
 
-![](../../pic/3.0/config-provider-config.png)
+![](../../../pic/3.0/config-provider-config.png)
 
 - ConsumerConfig
 
-![](../../pic/3.0/config-consumer-config.png)
+![](../../../pic/3.0/config-consumer-config.png)
 
 ### 1.2 配置例子
 
@@ -155,57 +155,6 @@ func main() {
     }
     logger.Infof("client response result: %v\n", reply)
 }
-```
-
-### 2.2 配置 API
-
-用户无需使用配置文件，可直接在代码中以 API 的调用的形式写入配置，如前面"快速开始"部分所提供的例子: 
-
-```go
-func main() {
-    // init rootConfig with config api
-    rc := config.NewRootConfigBuilder().
-        SetConsumer(config.NewConsumerConfigBuilder().
-            SetRegistryIDs("zookeeper").
-            AddReference("GreeterClientImpl", config.NewReferenceConfigBuilder().
-                SetInterface("org.apache.dubbo.UserProvider").
-                SetProtocol("tri").
-                Build()).
-            Build()).
-        AddRegistry("zookeeper", config.NewRegistryConfigWithProtocolDefaultPort("zookeeper")).
-        Build()
-    
-    // validate consumer greeterProvider
-    if err := rc.Init(); err != nil{
-        panic(err)
-    }
-    
-    // run rpc invocation
-    testSayHello()
-}
-```
-
-配置 API 看上去写法较为复杂，但单个配置结构的构造过程都是一致的，参考 Java  Builder 的设计，我们在配置 API 模块选用 `New().SetA().SetB().Build()`的方式来构造单个配置结构。
-
-将上述例子中的 rootConfig 构造过程，可以拆解为：
-
-```go
-referenceConfig := config.NewReferenceConfigBuilder().
-    SetInterface("org.apache.dubbo.UserProvider").
-    SetProtocol("tri").
-    Build()
-
-consumerConfig := config.NewConsumerConfigBuilder().
-    SetRegistryIDs("zookeeper").
-    AddReference("GreeterClientImpl", referenceConfig).
-    Build()).
-
-registryConfig := config.NewRegistryConfigWithProtocolDefaultPort("zookeeper")
-
-rc := config.NewRootConfigBuilder().
-    SetConsumer(consumerConfig).
-    AddRegistry("zookeeper", registryConfig).
-    Build()
 ```
 
 ### 2.3 从配置中心读取

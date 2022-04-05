@@ -5,7 +5,7 @@ description: 对dubbo-go整体架构的概要描述
 ---
 
 # 架构
-![architecture](../../../../img/dubbo-go-architecture.png)
+![architecture](../../../../../img/dubbo-go-architecture.png)
 
 #### 节点说明
 
