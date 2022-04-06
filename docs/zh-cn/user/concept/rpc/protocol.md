@@ -6,102 +6,108 @@ description: Dubbo的网络协议
 
 # 网络协议
 
-## 1. 网络协议是什么
+## 1. RPC 服务框架与网络协议
 
-对于 Dubbogo 微服务框架，网络协议为远程过程调用中负责网络通信的模块，负责应用层到网络层的数据序列化、打包、请求发起、网络端口监听等功能。Dubbogo 为协议抽象了一套接口如下：
+网络协议在 RPC 场景十分重要，在微服务场景下，服务进程之间的通信依赖可以连通的网络，以及client与server 端保持一致的网络协议。网络协议是一个抽象的概念，站在 dubbo-go 应用开发的角度，不妨把我们关注的协议分为三个维度来讨论。
 
-```go
-type Protocol interface {
-	// Export service for remote invocation
-	Export(invoker Invoker) Exporter
-	// Refer a remote service
-	Refer(url *common.URL) Invoker
-	// Destroy will destroy all invoker and exporter, so it only is called once.
-	Destroy()
-}
-```
+- 打解包协议
 
-该接口包含三个方法。其中 Export 方法负责服务的暴露过程。入参 invoker 为dubbo 的概念，其封装了一个可以被调用的实例。在具体网络协议（例如Triple）实现的 Export 方法中，会针对特定的协议，将封装有一定逻辑的可调用实例 Invoker 以网络端口监听的形式暴露给外部服务，来自外部针对该网络端口的请求将会被 Export 方法开启的监听协程获取，进而根据网络协议进行拆解包和反序列化，得到解析后的请求数据。
+  Dubbo-go 服务框架内置的打解包协议都是基于 TCP/IP 协议栈的，在此基础之上，封装/引入了多种协议，例如 Triple(dubbo3)、Dubbo、gRPC。
 
-Refer 方法负责服务的引用过程，其入参 url 为 dubbo 框架通用的结构，可以描述一个希望引用的服务，url 参数中包含了多个希望引用服务的参数，例如对应服务的接口名(interface)，版本号(version)，使用协议(protocol) 等等。在具体网络协议（例如Triple）实现的 Refer 方法中，会将特定的网络协议封装到 Invoker 可调用实例的方法中，用户层发起的 RPC 调用即可直接通过返回的 Invoker 对象，发起特定协议的网络请求。
+  这一类协议重点关注 TCP 报文的封装和拆解过程，保证点对点的可靠通信。
 
-Destroy 方法作用为销毁当前暴露的服务，用于服务下线场景。Dubbogo 框架有优雅下线机制，可以在服务进程终止前以监听信号的形式，下线所有已启动的服务。
+  在 dubbo-go 生态中，支持多种网络往往值得这一类协议。
 
-## 2. Dubbogo 3.0 支持的网络协议
+  
 
-Dubbogo 3.0 版本支持的网络协议和序列化方式如下：
+- 序列化协议
 
-| 协议    | 协议名 (用于配置) |         序列化方式          | 默认序列化方式 |
-| ------- | ----------------- | :-------------------------: | -------------- |
-| Triple  | tri               | pb hessian2 msgpack custome | pb             |
-| Dubbo   | dubbbo            |          hessian2           | hessian2       |
-| gRPC    | grpc              |             pb              | pb             |
-| jsonRPC | jsonrpc           |            json             | json           |
+  序列化协议负责将内存中的对象以特定格式序列化为二进制流。一些主流的序列化库有：具有较好可读性、应用广泛的 json 序列化方式；较高压缩效率，性能较好的 protobuf 序列化方式；适配与 Java 语言的 hessian2 序列化方式等。dubbogo 内置了这三种序列化方式
 
-## 3. 如何配置网络协议
+  序列化协议是需要开发者在业务开发过程中关注的，序列化协议往往需要特定的对象标注：
 
-在快速开始章节可以看到，在配置的过程中将 Protocol 设置为 tri，表明使用 Triple 协议进行服务暴露和服务调用。快速开始章节使用的配置 API 进行配置的写入，这样的好处是无需使用配置文件。我们摘取出和网络协议相关的内容进行说明。
+  一个由 protoc-gen-go 生成的 protobuf 序列对象的例子：
 
-### 使用配置 API
+  ```protobuf
+  type HelloRequest struct {
+  	state         protoimpl.MessageState
+  	sizeCache     protoimpl.SizeCache
+  	unknownFields protoimpl.UnknownFields
+  
+  	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+  }
+  ```
 
-- 客户端使用配置 API 设置网络协议
+  一个可与 java 服务互通的 hessian2 序列化对象
 
-```go
-rc := config.NewRootConfigBuilder().
-    SetConsumer(config.NewConsumerConfigBuilder().
-        AddReference("GreeterClientImpl", config.NewReferenceConfigBuilder().
-            SetInterface("org.apache.dubbo.UserProvider").
-            SetProtocol("tri"). // set reference protcol to triple
-            Build()).
-        Build()).
-    Build()
-```
+  ```go
+  type HelloRequest struct {
+  	Name   string `hessian:"name"`
+  }
+  
+  func (u *HelloRequest) JavaClassName() string {
+  	return "org.apache.dubbo.sample.User"
+  }
+  ```
 
-- 服务端使用配置 API 设置网络协议
+  序列化协议与打解包协议的关系
 
-```go
-rc := config.NewRootConfigBuilder().
-    SetProvider(config.NewProviderConfigBuilder().
-        AddService("GreeterProvider", config.NewServiceConfigBuilder().
-            SetInterface("org.apache.dubbo.UserProvider").
-            SetProtocolIDs("tripleProtocolKey"). // use protocolID 'tripleProtocolKey'
-            Build()).
-        Build()).
-    AddProtocol("tripleProtocolKey", config.NewProtocolConfigBuilder(). // define protocol config with protocolID 'tripleProtocolKey'
-        SetName("tri"). // set service protocol to triple
-        Build()).
-    Build()
-```
+  - 一种打解包协议可以适配于多种序列化协议支持：例如，您可以使用 dubbogo 的 triple 协议来传递 hessian序列化参数与 Dubbo-java 服务框架互通；传递 pb 序列化参数与原生 gRPC 服务互通；通过实现接口来自定义您的希望的序列化方式例如 json，从而传递具有较强可读性的参数。
 
-### 使用配置文件 
+- 接口协议
 
-参考 samples/helloworld
+  接口协议，是由业务开发人员开发并且维护的协议，用于描述服务接口的信息。例如接口名、方法、参数类型。
 
-- 客户端使用配置文件设置网络协议
+  以 Triple/gRPC 为例，开发人员可以使用插件，从 proto 文件中定义的接口生成存根(.pb.go 文件)，存根文件内包含接口所有信息，及接口协议。
 
-```yaml
-dubbo:
-  consumer:
-    references:
-      GreeterClientImpl:
-        protocol: tri # set protcol to tri
-        interface: com.apache.dubbo.sample.basic.IGreeter 
-```
+  在编写服务时，客户端和服务端同时引入相同的接口，即可保证客户端发起针对特定接口和方法的调用，能被服务端正确识别和响应。
 
-- 服务端使用配置文件设置网络协议
+  一个由 proto 编写的接口描述文件：
 
-```yaml
-dubbo:
-  protocols:
-    triple: # define protcol-id 'triple'
-      name: tri # set protcol to tri
-      port: 20000 # set port to be listened
-  provider:
-    services:
-      GreeterProvider:
-        protocol-ids: triple # use protocol-ids named 'triple'
-        interface: com.apache.dubbo.sample.basic.IGreeter
-```
+  ```protobuf
+  syntax = "proto3";
+  package api;
+  
+  option go_package = "./;api";
+  
+  // The greeting service definition.
+  service Greeter {
+    // Sends a greeting
+    rpc SayHello (HelloRequest) returns (User) {}
+    // Sends a greeting via stream
+    rpc SayHelloStream (stream HelloRequest) returns (stream User) {}
+  }
+  
+  // The request message containing the user's name.
+  message HelloRequest {
+    string name = 1;
+  }
+  
+  // The response message containing the greetings
+  message User {
+    string name = 1;
+    string id = 2;
+    int32 age = 3;
+  }
+  ```
 
+  接口协议与序列化协议的关系
+
+  - 接口协议是抽象的概念，一种接口协议可以使用多种接口描述语言来编写，并且可以转化成多种序列化协议对象。
+
+## 2. Dubbogo 支持的网络协议
+
+Dubbogo 版本支持的网络协议和序列化方式如下：
+
+| 协议            | 协议名 (用于配置) |         序列化方式         | 默认序列化方式 |
+| --------------- | ----------------- | :------------------------: | -------------- |
+| Triple 【推荐】 | tri               | pb/hessian2/msgpack/自定义 | pb             |
+| Dubbo           | dubbo             |          hessian2          | hessian2       |
+| gRPC            | grpc              |             pb             | pb             |
+| jsonRPC         | jsonrpc           |            json            | json           |
+
+
+
+相关阅读：[【Dubbo-go 服务代理模型】](https://developer.aliyun.com/article/878252)
 
 下一章：[【注册中心】](./registry.html)

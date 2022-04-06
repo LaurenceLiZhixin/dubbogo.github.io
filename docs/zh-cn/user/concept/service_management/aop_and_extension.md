@@ -4,172 +4,108 @@ keywords: AOP 与可扩展机制
 description: AOP 与可扩展机制
 ---
 
-# 注册中心
+# 组件加载与可扩展性
 
-## 1. Dubbo 的注册中心是什么
+## 1. extension 模块与 init 方法
 
-对于 Dubbogo 微服务框架，注册中心在 RPC 场景下复杂保存 Provider 应用的服务信息。Provider 注册地址到注册中心，Consumer 从注册中心读取和订阅 Provider 地址列表。如图所示：
+### 1.1 接口与实现
 
-![](https://dubbo.apache.org/imgs/architecture.png)
+golang 中的一个接口往往伴随多个实现类，dubbo-go 提供了针对接口实现类的可插拔可扩展机制。降低模块之间的耦合性，方便开发者引入、自定义组件。
 
-关于 Dubbo 服务发现细节，详情可参考 [Dubbo 官网的概念介绍](https://dubbo.apache.org/zh/docs/concepts/service-discovery/)
+### 1.2 golang 中的 init 方法
 
-Dubbogo 为注册中心抽象了一套接口如下：
+init 方法作为 golang 中特殊的方法，用户引入一组模块后，会在程序启动时率先执行这些模块内的init 方法，进行加载逻辑，该方法是dubbogo注册扩展组件的重要方式。
+
+### 1.3 extension 模块
+
+在框架源码中，有一个特殊的模块: common/extension ，这一模块负责缓存所有可扩展组件的实现。
+
+以负载均衡模块为例：common/extension/loadbalance.go 
 
 ```go
-// Registry Extension - Registry
-type Registry interface {
-	common.Node
+package extension
 
-	// Register is used for service provider calling, register services
-	// to registry. And it is also used for service consumer calling, register
-	// services cared about, for dubbo's admin monitoring.
-	Register(url *common.URL) error
+import (
+	"dubbo.apache.org/dubbo-go/v3/cluster/loadbalance"
+)
 
-	// UnRegister is required to support the contract:
-	// 1. If it is the persistent stored data of dynamic=false, the
-	//    registration data can not be found, then the IllegalStateException
-	//    is thrown, otherwise it is ignored.
-	// 2. Unregister according to the full url match.
-	// url Registration information, is not allowed to be empty, e.g:
-	// dubbo://10.20.153.10/org.apache.dubbo.foo.BarService?version=1.0.0&application=kylin
-	UnRegister(url *common.URL) error
+var loadbalances = make(map[string]func() loadbalance.LoadBalance)
 
-	// Subscribe is required to support the contract:
-	// When creating new registry extension, pls select one of the
-	// following modes.
-	// Will remove in dubbogo version v1.1.0
-	// mode1: return Listener with Next function which can return
-	//        subscribe service event from registry
-	// Deprecated!
-	// subscribe(event.URL) (Listener, error)
-	// Will replace mode1 in dubbogo version v1.1.0
-	// mode2: callback mode, subscribe with notify(notify listener).
-	Subscribe(*common.URL, NotifyListener) error
+// SetLoadbalance sets the loadbalance extension with @name
+// For example: random/round_robin/consistent_hash/least_active/...
+func SetLoadbalance(name string, fcn func() loadbalance.LoadBalance) {
+	loadbalances[name] = fcn
+}
 
-	// UnSubscribe is required to support the contract:
-	// 1. If don't subscribe, ignore it directly.
-	// 2. Unsubscribe by full URL match.
-	// url Subscription condition, not allowed to be empty, e.g.
-	// consumer://10.20.153.10/org.apache.dubbo.foo.BarService?version=1.0.0&application=kylin
-	// listener A listener of the change event, not allowed to be empty
-	UnSubscribe(*common.URL, NotifyListener) error
+// GetLoadbalance finds the loadbalance extension with @name
+func GetLoadbalance(name string) loadbalance.LoadBalance {
+	if loadbalances[name] == nil {
+		panic("loadbalance for " + name + " is not existing, make sure you have import the package.")
+	}
+
+	return loadbalances[name]()
 }
 ```
 
-该接口主要包含四个方法，分别是注册、反注册、订阅、取消订阅。顾名思义，概括了客户端和服务端与注册中心交互的动作。针对普通接口级服务注册发现场景，在Provider 服务启动时，会将自身服务接口信息抽象为一个 url，该 url 包含了客户端发起调用所需的所有信息（ip、端口、协议等），服务端的注册中心组件会将该 url 写入注册中心（例如zk）。客户端启动后，在服务引用 Refer 步骤会通过注册中心组件订阅（Subscribe）需要的服务信息，获取到的服务信息以异步事件更新的形式写入客户端缓存，从而在服务发现成功后，可以根据拿到的服务 url 参数，向对应服务提供者发起调用。
+该模块包含Get 方法和Set方法。Get 返回实例化的 LoadBalance 接口，Set 方法用于注册工厂函数，map 用于缓存工厂函数。
 
-## 2. Dubbogo 3.0 支持的注册中心类型
+当用户引入 _ "dubbo.apache.org/dubbo-go/v3/cluster/loadbalance/random" 时，将会加载对应模块的init函数，调用 Set 方法注册唯一key和工厂函数和到上述map中。
 
-Dubbogo 3.0 版本支持的注册中心类型如下：
-
-| 注册中心  | 注册中心名（用于配置） |
-| --------- | ---------------------- |
-| Zookeeper | zookeeper              |
-| Nacos     | nacos                  |
-| Etcd      | etcd                   |
-| Consul    | consul                 |
-
-## 3. 如何配置注册中心
-
-### 使用配置 API
-
-- 客户端使用配置 API 设置注册中心
-
-可通过调用config.NewRegistryConfigWithProtocolDefaultPort方法，快速设置用于调试的注册中心，支持zookeeper(127.0.0.1:2181) 和nacos(127.0.0.1:8848)
+cluster/loadbalance/random/loadbalance.go
 
 ```go
-rc := config.NewRootConfigBuilder().
-    SetConsumer(config.NewConsumerConfigBuilder().
-        SetRegistryIDs("zookeeperID"). // use defined registryID
-        Build()).
-    AddRegistry("zookeeperID", config.NewRegistryConfigWithProtocolDefaultPort("zookeeper")).
-    Build()
+package random
+
+import (
+	"math/rand"
+)
+
+import (
+	"dubbo.apache.org/dubbo-go/v3/cluster/loadbalance"
+	"dubbo.apache.org/dubbo-go/v3/common/constant"
+	"dubbo.apache.org/dubbo-go/v3/common/extension"
+	"dubbo.apache.org/dubbo-go/v3/protocol"
+)
+
+func init() {
+	extension.SetLoadbalance(constant.LoadBalanceKeyRandom, NewRandomLoadBalance)
+}
 ```
 
-全部接口：可通过调用RegistryConfigBuilder提供的丰富接口进行配置。
+至此，当所有init方法执行完毕，可以通过 extension 模块 Get 方法来获取实例化对象。
+
+### 1.4 imports 模块
+
+dubbogo 将所有内置的模块全部放置在 imports/imports.go 内，用户在使用框架时，需要引入该模块，从而使用框架提供的基础能力。
 
 ```go
-rc := config.NewRootConfigBuilder().
-    SetConsumer(config.NewConsumerConfigBuilder().
-        SetRegistryIDs("nacosRegistryID"). // use defined registryID
-        AddReference("GreeterClientImpl",/*...*/).
-        Build()
-    AddRegistry("nacosRegistryID", config.NewRegistryConfigBuilder().
-        SetProtocol("nacos").
-        SetAddress("127.0.0.1:8848").
-        SetGroup("dubbo-go").
-        SetNamespace("dubbo").
-        SetUsername("admin").
-        SetPassword("admin").
-        SetTimeout("3s").
-        Build()).
-    Build()
+import (
+	_ "dubbo.apache.org/dubbo-go/v3/imports"
+)
 ```
 
-- 服务端使用配置 API 设置配置中心
+## 2. 组件加载流程
 
-简易接口 config.NewRegistryConfigWithProtocolDefaultPort
+1. 用户在代码中引入 _  "dubbo.apache.org/dubbo-go/v3/imports"
 
-```go
-rc := config.NewRootConfigBuilder().
-    SetProvider(config.NewProviderConfigBuilder().
-        AddService("GreeterProvider", /*...*/).
-        SetRegistryIDs("registryKey").  // use defined registryID
-        Build()).
-    AddRegistry("registryKey", config.NewRegistryConfigWithProtocolDefaultPort("zookeeper")).
-    Build()
-```
+2. 程序启动，init 函数被依次执行，注册工厂函数/实例化对象到 extension 模块。
 
-全部接口：可通过调用RegistryConfigBuilder提供的丰富接口进行配置。
+3. 框架启动，加载配置，配置中获取需要加载的模块key，根据key获取实例化对象。
 
-```go
-rc := config.NewRootConfigBuilder().
-    SetProvider(config.NewProviderConfigBuilder().
-        AddService("GreeterProvider",/*...*/)
-        SetRegistryIDs("registryKey"). // use defined registryID
-        Build()).
-    AddRegistry("registryKey", config.NewRegistryConfigBuilder().
-        SetProtocol("nacos").
-        SetAddress("127.0.0.1:8848").
-        SetGroup("dubbo-go").
-        SetNamespace("dubbo").
-        SetUsername("admin").
-        SetPassword("admin").
-        SetTimeout("3s").
-        Build()).
-    Build()
-```
+   用户也可以手动调用 extension 的 Get 方法，获取实例化对象并直接使用。
 
-### 使用配置文件 
+## 3. 自定义组件
 
-- 客户端/服务端
+在上述介绍的基础之上，开发人员可以效仿内置模块，编写自定义扩展组件。
 
-```yaml
-dubbo:
-  registries:
-    demoZK: # define registry-id 'demoZK'
-      protocol: zookeeper # set registry protocol
-      timeout: 3s
-      address: 127.0.0.1:2181
-  protocols:
-    triple:
-      name: tri
-      port: 20000
-  provider:
-    registry-ids:
-      - demoZK # use registry-id 'demoZK'
-    services:
-      GreeterProvider:
-        protocol-ids: triple
-        interface: com.apache.dubbo.sample.basic.IGreeter 
-  consumer:
-    registry-ids:
-      - demoZK # use registry-id 'demoZK'
-    references:
-      GreeterClientImpl:
-        protocol: tri
-        interface: com.apache.dubbo.sample.basic.IGreeter 
-```
+可参考任务[【自定义服务调用中间件】](../../task/service_management/aop.html)，该例子以Filter 接口为例，基于面向切面编程的思路，提供给用户介入调用链路进行过滤的能力。
+
+## 4. 面向切面编程的设计（AOP）
+
+在 Dubbo-go 服务框架中，许多接口是基于 AOP 的思路进行设计的。例如 Invoker、Filter、LoadBalance、Router。
+
+这些接口的多种实现往往组成一组调用链，单个实现类只处理自己所关注的逻辑。
+
+相关阅读：[【AOP wikipedia】](https://en.wikipedia.org/wiki/Aspect-oriented_programming)
 
 下一章：[【框架配置介绍】](./configuration.html)

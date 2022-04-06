@@ -115,20 +115,7 @@ export default {
                     },
                     {
                         title: '配置',
-                        children: [
-                            {
-                                title: '基本配置概念',
-                                link: '/zh-cn/docs/user/concept/config/basic_concept.html',
-                            },
-                            {
-                                title: '配置中心',
-                                link: '/zh-cn/docs/user/concept/config/config_center.html',
-                            },
-                            {
-                                title: '配置API',
-                                link: '/zh-cn/docs/user/concept/config/config_api.html',
-                            },
-                        ]
+                        link: '/zh-cn/docs/user/concept/config/basic_concept.html',
                     },
                     {
                         title: '更多',
@@ -173,7 +160,7 @@ export default {
                                 link: '/zh-cn/docs/user/tasks/rpc/timeout.html'
                             },
                             {
-                                title: '配置调用的超时',
+                                title: '查看服务调用指标',
                                 link: '/zh-cn/docs/user/tasks/rpc/rpc_metrics.html'
                             },
                             {
@@ -385,6 +372,19 @@ export default {
                     {
                         title: 'Dubbo-go 生态项目介绍',
                         link: '/zh-cn/docs/user/ecology/ecology.html'
+                    }
+                ]
+            },
+            {
+                title: '源码解读',
+                children: [
+                    {
+                        title: '网络协议',
+                        link: '/zh-cn/docs/user/sourcecode/protocol.html'
+                    },
+                    {
+                        title: '注册中心',
+                        link: '/zh-cn/docs/user/sourcecode/registry.html'
                     }
                 ]
             },
